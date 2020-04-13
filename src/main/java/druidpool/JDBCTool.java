@@ -7,7 +7,7 @@ public class JDBCTool {
 
     /**
      * 获取连接对象
-     * @return
+     * @return 连接
      */
     public static Connection getConnection(){
         return  dp.getConnection();
@@ -66,7 +66,7 @@ public class JDBCTool {
 
         Connection conn=null;
         int count=0;
-        for(int i=0;i<21;i++){
+        for(int i=0;i<20;i++){
             conn=getConnection();
 
             System.out.println(dp.getDruidDataSource().getActiveCount());

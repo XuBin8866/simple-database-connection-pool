@@ -32,8 +32,8 @@ public class ConnectionProxy implements InvocationHandler {
     private MyDataSource myDataSource;
     /**
      * 通过构造方法
-     * @param realConnection
-     * @param myDataSource
+     * @param realConnection 真实连接
+     * @param myDataSource 数据库连接池
      */
     public ConnectionProxy(Connection realConnection, MyDataSource myDataSource) {
         //初始化真实代理和数据源
@@ -45,11 +45,11 @@ public class ConnectionProxy implements InvocationHandler {
 
     /**
      * 当嗲用Connection对象里面的方法时，首先会被该invoke方法拦截
-     * @param proxy
-     * @param method
-     * @param args
-     * @return
-     * @throws Throwable
+     * @param proxy 代理
+     * @param method 方法
+     * @param args 参数
+     * @return 增强的代理对象
+     * @throws Throwable throwable
      */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

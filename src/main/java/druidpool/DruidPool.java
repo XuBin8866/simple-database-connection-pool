@@ -51,6 +51,7 @@ public class DruidPool {
         try {
             pro.load(is);
             ds = new DruidDataSource();
+            //可以不设置driverClass，他会自动识别
             ds.setUrl(pro.getProperty("jdbcUrl"));
             ds.setUsername(pro.getProperty("username"));
             ds.setPassword(pro.getProperty("password"));

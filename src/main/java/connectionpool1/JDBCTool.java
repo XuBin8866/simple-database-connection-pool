@@ -12,7 +12,7 @@ public class JDBCTool {
     //关闭连接
     public static void closeConnection(Connection conn){
         if(conn!=null){
-            ConnectionPool.getInstance().returnConnection(conn);
+            connectionPool.returnConnection(conn);
         }
     }
     public static void closeAll(Connection conn, Statement stat, ResultSet rs){
@@ -56,11 +56,12 @@ public class JDBCTool {
 
     public static void main(String[] args) {
         Connection conn=null;
-        int count=0;
-        for(int i=0;i<19;i++){
+        int count;
+        for(int i=0;i<20;i++){
             conn=getConnection();
             count=ConnectionPool.getInstance().getCreatedCount();
-            System.out.println("已创建连接数量："+count);
+            System.out.println(Thread.currentThread().getName()+"["+(i+1)+"]"+conn+"已创建连接数量："+count);
+
         }
 
         closeConnection(conn);

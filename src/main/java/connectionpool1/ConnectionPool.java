@@ -38,11 +38,15 @@ public class ConnectionPool {
      */
     private static int increasingCount=2;
     /**
+     * 用于获取连接和归还连接的同步锁对象
+     */
+    private static final Object MONITOR = new Object();
+    /**
      * 存储连接的集合
      */
     LinkedList<Connection> conns=new LinkedList<>();
-    /**
-     * 属性初始化
+    /*
+      属性初始化
      */
     static{
         Properties properties=new Properties();
@@ -126,7 +130,7 @@ public class ConnectionPool {
 
     /**
      * 构建数据库连接对象
-     * @return
+     * @return 连接
      */
     private Connection createConnection(){
         try{
@@ -156,31 +160,6 @@ public class ConnectionPool {
         }
 
     }
-
-    /**
-     * 获取池中连接
-     * @return
-     */
-    public Connection getConnection(){
-        //判断池中是否还有连接
-        if(conns.size()>0){
-            return conns.removeFirst();
-        }
-        //如果没有空连接，则调用自动增长方法
-        if(createdCount<maxCount){
-            autoAdd();
-            return getConnection();
-        }
-        //如果连接池连接数量达到上限,则等待连接归还
-        System.out.println("连接池中连接已用尽，请等待连接归还");
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return getConnection();
-    }
-
     /**
      * 自动减少连接
      */
@@ -197,19 +176,52 @@ public class ConnectionPool {
     }
 
     /**
+     * 获取池中连接
+     * @return 连接
+     */
+    public Connection getConnection() {
+        //判断池中是否还有连接
+        synchronized (MONITOR){
+            if (conns.size() > 0) {
+                System.out.println(Thread.currentThread().getName()+"--->获取到连接："+conns.getFirst()+"  已创建连接数量："+createdCount+"  空闲连接数"+(conns.size()-1));
+                return conns.removeFirst();
+            }
+            //如果没有空连接，则调用自动增长方法
+            if (createdCount < maxCount) {
+                autoAdd();
+                return getConnection();
+            }
+            //如果连接池连接数量达到上限,则等待连接归还
+            System.out.println(Thread.currentThread().getName() + "--->连接池中连接已用尽，请等待连接归还");
+            try {
+                MONITOR.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return getConnection();
+        }
+
+    }
+
+
+
+    /**
      * 归还连接
-     * @param conn
+     * @param conn 连接
      */
 
-    public void returnConnection(Connection conn){
-        System.out.println("归还数据库连接");
-        conns.add(conn);
-        //归还之后，减少连接
-        autoReduce();
+    public void returnConnection(Connection conn) {
+
+        synchronized (MONITOR) {
+            System.out.println(Thread.currentThread().getName() + "--->准备归还数据库连接" + conn);
+            conns.add(conn);
+            MONITOR.notify();
+            autoReduce();
+        }
     }
     /**
      * 返回可用连接数量
-     * @return
+     * @return 可用连接数量
      */
     public int getCreatedCount(){
         return createdCount;
